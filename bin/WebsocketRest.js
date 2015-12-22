@@ -38,7 +38,7 @@ class WebsocketRest {
 		 */
 		this.onUrlClose = {};
 
-		this.onMessage = function(req,socket){};
+		this.onEvent = function(){};
 
 		/**
 		 * Winston logger instance
@@ -256,10 +256,13 @@ class WebsocketRest {
 
 	        if(false === self._onConnection(socket)) return;
 
+	        self.onEvent();
+
 			socket.on('close',function(){
 				try{
 					if (socket.urlPath in self.onUrlClose) {
 						self.onUrlClose[socket.urlPath](socket);
+						self.onEvent();
 					}
 				} catch(err){
 					self._log.err(`websocket-rest (socket.onClose)`,{
@@ -313,7 +316,7 @@ class WebsocketRest {
 
 						try{
 							self.modules[req['module']][req['method']](req, socket);
-							self.onMessage(req,socket);
+							self.onEvent();
 						} catch (err){
 							self._log.fatal('websocket-rest (socket.onMessage)',{
 								message : 'Found new undiscowered error!',
