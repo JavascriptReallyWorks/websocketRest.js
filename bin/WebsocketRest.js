@@ -45,6 +45,8 @@ class WebsocketRest {
 		 * @type {null}
 		 */
 		this._log = null;
+
+		this._connectionsCheck();
 	}
 
 	/**
@@ -57,6 +59,22 @@ class WebsocketRest {
         this.socket = socket;
         this.apiVersion = apiVersion;
     }
+
+	_connectionsCheck() {
+		var self = this;
+		setTimeout(function () {
+			let sockets = websocketRest.getConnectedClients();
+			for (let i in sockets) {
+				sockets[i].ping();
+				sockets[i].pingsSent++;
+				console.log(sockets[i].pingsSent);
+				if (sockets[i].pingsSent >= 3) {
+					sockets[i].close();
+				}
+			}
+			self._connectionsCheck();
+		}, 500);
+	}
 
 	/**
 	 * Register function that will execute every time message will come from client.
@@ -278,6 +296,10 @@ class WebsocketRest {
 					});
 				}
 			});
+
+	        socket.on('pong',function(){
+				socket.pingsSent = 0;
+	        });
 
             socket.on('message', function (msg) {
 	            try{
