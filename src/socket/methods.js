@@ -31,11 +31,11 @@ module.exports = function (socket, apiVersion, log) {
 				report: report
 			};
 
-			log.info(`websocket-rest (socket.validate.${name})`,'fail',error);
+			log.info(`websocket-rest (socket.validate.${name})`, 'fail', error);
 			socket.validationError(error);
 			return false;
 		} else {
-			log.info(`websocket-rest (socket.validate.${name})`,'pass');
+			log.info(`websocket-rest (socket.validate.${name})`, 'pass');
 			return true;
 		}
 	};

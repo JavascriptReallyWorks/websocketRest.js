@@ -7,7 +7,7 @@ var addSocketKeys = require('./socket/keys');
 var addSocketMethods = require('./socket/methods');
 
 class WebsocketRest {
-	constructor(){
+	constructor() {
 		/**
 		 * Websocket server instance.
 		 * @type {null}
@@ -38,7 +38,8 @@ class WebsocketRest {
 		 */
 		this.onUrlClose = {};
 
-		this.onMessage = function(req,socket){};
+		this.onEvent = function () {
+		};
 
 		/**
 		 * Winston logger instance
@@ -46,7 +47,6 @@ class WebsocketRest {
 		 */
 		this._log = null;
 
-		this._connectionsCheck();
 	}
 
 	/**
@@ -55,18 +55,64 @@ class WebsocketRest {
 	 * @param socket
 	 * @param apiVersion
 	 */
-    init(socket, apiVersion) {
-        this.socket = socket;
-        this.apiVersion = apiVersion;
-    }
+	init(socket, apiVersion, connectionsCheck, lastPingCheck) {
+		this.socket = socket;
+		this.apiVersion = apiVersion;
+
+		if (connectionsCheck) this._connectionsCheck();
+		if (lastPingCheck) this._lastPingCheck();
+	}
+
+	_connectionsCheck() {
+		var self = this;
+		setTimeout(function () {
+			for (let i in self.socket.clients) {
+				try {
+					self.socket.clients[i].ping();
+				} catch (err) {
+
+				}
+				self.socket.clients[i].pingStats.count++;
+				if (self.socket.clients[i].pingStats.count >= 5) {
+					try {
+						self.socket.clients[i].close();
+					} catch (err) {
+
+					}
+					self.onUrlClose[self.socket.clients[i].urlPath](self.socket.clients[i]);
+					self.socket.clients.splice(i, 1);
+				}
+			}
+			self._connectionsCheck();
+		}, 1000);
+	}
+
+	_lastPingCheck() {
+		var self = this;
+		setTimeout(function () {
+			for (let i in self.socket.clients) {
+
+				if ((new Date() - self.socket.clients[i].pingStats.pingedAt) / 1000 > 10) {
+					try {
+						self.socket.clients[i].close();
+					} catch (err) {
+
+					}
+					self.onUrlClose[self.socket.clients[i].urlPath](self.socket.clients[i]);
+					self.socket.clients.splice(i, 1);
+				}
+			}
+			self._lastPingCheck();
+		}, 1000);
+	}
 
 	/**
 	 * Register function that will execute every time message will come from client.
 	 *
 	 * @param fun
 	 */
-	registerOnMessage(fun){
-		this.onMessage = fun;
+	registerOnEvent(fun) {
+		this.onEvent = fun;
 	}
 
 	/**
@@ -74,24 +120,8 @@ class WebsocketRest {
 	 *
 	 * @param logger
 	 */
-	logger(logger){
+	logger(logger) {
 		this._log = logger;
-	}
-
-	_connectionsCheck(){
-		var self = this;
-		setTimeout(function () {
-			let sockets = websocketRest.getConnectedClients();
-			for (let i in sockets) {
-				sockets[i].ping();
-				sockets[i].pingsSent++;
-				console.log(sockets[i].pingsSent);
-				if (sockets[i].pingsSent >= 3) {
-					sockets[i].close();
-				}
-			}
-			self._connectionsCheck();
-		}, 500);
 	}
 
 	/**
@@ -104,7 +134,6 @@ class WebsocketRest {
 		for (let cliI in this.socket.clients) {
 			if (this.socket.clients[cliI].key == key) {
 				try {
-					this.socket.clients[cliI].ping();
 					return this.socket.clients[cliI];
 				} catch (err) {
 				}
@@ -121,7 +150,6 @@ class WebsocketRest {
 		var connectedCli = [];
 		for (let cliI in this.socket.clients) {
 			try {
-				this.socket.clients[cliI].ping();
 				connectedCli.push(this.socket.clients[cliI]);
 			} catch (err) {
 			}
@@ -136,13 +164,13 @@ class WebsocketRest {
 	 * @param moduleName
 	 * @param module
 	 */
-    registerModule(moduleName, module) {
-        if (moduleName in this.modules) {
-            throw new Error(moduleName + ' is allready in registered modules!');
-        } else {
-            this.modules[moduleName] = module;
-        }
-    }
+	registerModule(moduleName, module) {
+		if (moduleName in this.modules) {
+			throw new Error(moduleName + ' is allready in registered modules!');
+		} else {
+			this.modules[moduleName] = module;
+		}
+	}
 
 	/**
 	 * Register fun. that will execute on connection event when
@@ -152,20 +180,20 @@ class WebsocketRest {
 	 * @param url
 	 * @param fun
 	 */
-	registerOnConnectUrl(url,fun){
+	registerOnConnectUrl(url, fun) {
 		var self = this;
-		if(url in this.onUrlConnect){
+		if (url in this.onUrlConnect) {
 			let error = `${url} is allready in onUrlConnect!`;
-			self._log.fatal('websocket-rest (registerOnConnectUrl)',{
-				message : error,
-				url : url
+			self._log.fatal('websocket-rest (registerOnConnectUrl)', {
+				message: error,
+				url: url
 			});
 			throw new Error(error);
 		} else {
-			this.onUrlConnect[url] = function(socket){
+			this.onUrlConnect[url] = function (socket) {
 				try {
-					fun(socket,function(){
-						self._log.info('websocket-rest (socket.connection)',{
+					fun(socket, function () {
+						self._log.info('websocket-rest (socket.connection)', {
 							message: 'Client has connected',
 							socket: {
 								address: socket.address,
@@ -178,10 +206,10 @@ class WebsocketRest {
 						});
 					});
 				} catch (err) {
-					self._log.err(`websocket-rest (registerOnConnectUrl)`,{
-						message : 'this.onUrlConnect[url]',
-						url : url,
-						stack : err.stack
+					self._log.err(`websocket-rest (registerOnConnectUrl)`, {
+						message: 'this.onUrlConnect[url]',
+						url: url,
+						stack: err.stack
 					});
 				}
 			};
@@ -200,13 +228,13 @@ class WebsocketRest {
 		var self = this;
 		if (url in this.onUrlClose) {
 			let error = `${url} is allready in onUrlClose !`;
-			self._log.fatal('websocket-rest (registerOnCloseUrl)',{
-				message : error,
-				url : url
+			self._log.fatal('websocket-rest (registerOnCloseUrl)', {
+				message: error,
+				url: url
 			});
 			throw new Error(error);
 		} else {
-			this.onUrlClose[url] = function(socket){
+			this.onUrlClose[url] = function (socket) {
 				try {
 					self._log.info('websocket-rest (socket.close)', {
 						message: 'Client has disconnected',
@@ -221,10 +249,10 @@ class WebsocketRest {
 					});
 					fun(socket);
 				} catch (err) {
-					self._log.err(`websocket-rest (registerOnCloseUrl)`,{
-						message : 'this.onUrlConnect[url]',
-						url : url,
-						stack : err.stack
+					self._log.err(`websocket-rest (registerOnCloseUrl)`, {
+						message: 'this.onUrlConnect[url]',
+						url: url,
+						stack: err.stack
 					});
 				}
 			};
@@ -239,10 +267,10 @@ class WebsocketRest {
 	 * @param socket
 	 * @private
 	 */
-	_onConnection(socket){
+	_onConnection(socket) {
 		let urlPath = socket.urlPath;
 
-		if(urlPath in this.onUrlConnect){
+		if (urlPath in this.onUrlConnect) {
 			this.onUrlConnect[urlPath](socket);
 		} else {
 			var err = `UrlPath: ${socket.urlPath}] not found !`;
@@ -264,43 +292,59 @@ class WebsocketRest {
 	 * form request structure,
 	 * and call requested method in module.
 	 */
-    initServer() {
-        var self = this;
-        this.socket.on('connection', function (socket) {
+	initServer() {
+		var self = this;
+		this.socket.on('connection', function (socket) {
 
-	        addSocketResponse(socket,self.apiVersion,self._log);
-	        addSocketKeys(socket);
-	        addSocketMethods(socket,self.apiVersion,self._log);
+			addSocketResponse(socket, self.apiVersion, self._log);
+			addSocketKeys(socket);
+			addSocketMethods(socket, self.apiVersion, self._log);
 
-	        if(false === self._onConnection(socket)) return;
+			if (false === self._onConnection(socket)) return;
 
-			socket.on('close',function(){
-				try{
+			try {
+				self.onEvent();
+			} catch (err) {
+				self._log.fatal('websocket-rest (socket.onEvent)', {
+					message: 'Found new undiscovered error!',
+					stack: err.stack
+				});
+			}
+
+			socket.on('close', function () {
+				try {
 					if (socket.urlPath in self.onUrlClose) {
 						self.onUrlClose[socket.urlPath](socket);
+						self.onEvent();
 					}
-				} catch(err){
-					self._log.err(`websocket-rest (socket.onClose)`,{
-						message : 'Unknown error on socket close.',
-						stack : err.stack
+				} catch (err) {
+					self._log.err(`websocket-rest (socket.onClose)`, {
+						message: 'Unknown error on socket close.',
+						stack: err.stack
 					});
 				}
 			});
 
-	        socket.on('pong', function () {
-		        socket.pingsSent = 0;
-	        });
+			socket.on('pong', function () {
+				socket.pingStats.count = 0;
+				socket.pingStats.pingedAt = new Date();
+			});
 
-            socket.on('message', function (msg) {
-	            try{
+			socket.on('ping', function () {
+				socket.pingStats.count = 0;
+				socket.pingStats.pingedAt = new Date();
+			});
 
-					try{
+			socket.on('message', function (msg) {
+				try {
+
+					try {
 						var req = JSON.parse(msg) || {};
-					} catch (err){
+					} catch (err) {
 						self._log.err(`websocket-rest (socket.onMessage)`, {
-							message : 'Error while parsing socket message json structure',
-							clientMsg : msg,
-							stack : err.stack
+							message: 'Error while parsing socket message json structure',
+							clientMsg: msg,
+							stack: err.stack
 						});
 						var req = {};
 					}
@@ -313,18 +357,18 @@ class WebsocketRest {
 					}
 					if (keyError.length != 0) {
 						var err = `Keys: [${keyError}] not in request!`;
-						socket.error(status.getStatusText(status.BAD_REQUEST),[err],481);
+						socket.error(status.getStatusText(status.BAD_REQUEST), [err], 481);
 
-					} else if(0 == req.method.indexOf("private")){
+					} else if (0 == req.method.indexOf("private")) {
 						var err = `Method: [${req.method}] is private!`;
 						socket.REST.module = req['module'];
 						socket.REST.method = req['method'];
-						socket.error(status.getStatusText(status.METHOD_NOT_ALLOWED),[err],482);
+						socket.error(status.getStatusText(status.METHOD_NOT_ALLOWED), [err], 482);
 					} else {
 						socket.REST.module = req['module'];
 						socket.REST.method = req['method'];
 
-						if(!req.data){
+						if (!req.data) {
 							req.body = {};
 						} else {
 							req.body = req.data;
@@ -333,25 +377,25 @@ class WebsocketRest {
 
 						req = addRequestMethods(socket, req, self._log);
 
-						try{
+						try {
 							self.modules[req['module']][req['method']](req, socket);
-							self.onMessage(req,socket);
-						} catch (err){
-							self._log.fatal('websocket-rest (socket.onMessage)',{
-								message : 'Found new undiscowered error!',
-								stack : err.stack
-							})
+							self.onEvent();
+						} catch (err) {
+							self._log.fatal('websocket-rest (socket.onMessage)', {
+								message: 'Found new undiscowered error!',
+								stack: err.stack
+							});
 						}
 					}
-	            } catch (err){
-		            self._log.err(`websocket-rest (socket.onMessage)`, {
-			            message : 'Unknown error on socket message.',
-						stack : err.stack
-		            });
-	            }
-            });
-        });
-    }
+				} catch (err) {
+					self._log.err(`websocket-rest (socket.onMessage)`, {
+						message: 'Unknown error on socket message.',
+						stack: err.stack
+					});
+				}
+			});
+		});
+	}
 }
 
 /**

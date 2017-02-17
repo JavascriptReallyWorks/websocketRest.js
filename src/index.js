@@ -4,4 +4,3 @@
  * @type {WebsocketRest|exports|module.exports}
  */
 module.exports = require('./WebsocketRest');
-

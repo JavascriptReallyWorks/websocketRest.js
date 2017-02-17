@@ -1,12 +1,5 @@
-dist
-doc
-
 node_modules
-bower_components
-
-lib
+build
 .idea
+docs.json
 npm-debug.log
-*.map
-*-compiled.js
-

@@ -1,7 +1,7 @@
 "use strict";
 var Vjson = require('jsonschema').Validator;
 
-module.exports = function (socket,req,log) {
+module.exports = function (socket, req, log) {
 
 	req.isValidated = true;
 
@@ -20,11 +20,11 @@ module.exports = function (socket,req,log) {
 				report: report
 			};
 
-			log.info(`websocket-rest (socket.validate.${name})`,'fail',error);
+			log.info(`websocket-rest (socket.validate.${name})`, 'fail', error);
 			socket.validationError(error);
 			this.isValidated = false;
 		} else {
-			log.info(`websocket-rest (socket.validate.${name})`,'pass');
+			log.info(`websocket-rest (socket.validate.${name})`, 'pass');
 		}
 	};
 

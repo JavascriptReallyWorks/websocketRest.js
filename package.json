@@ -1,43 +1,65 @@
 {
-  "name": "websocket-rest",
-  "version": "0.0.1",
-  "description": "Small websocket lib wraper for ws lib, similar to express.",
-  "main": "./bin/index.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/urosjarc/websocketRest.js"
-  },
-  "keywords": [
-    "es6",
-    "micro",
-    "microjs",
-    "websocket-rest"
-  ],
-  "author": {
-    "name": "Uroš Jarc",
-    "email": "jar.fmf@gmail.com",
-    "url": "https://github.com/urosjarc"
-  },
-  "license": "MIT",
-  "homepage": "https://github.com/urosjarc/websocket-rest",
-  "scripts": {
-    "test": "node test"
-  },
-  "dependencies": {
-    "http-status-codes": "^1.0.5",
-    "query-string": "^4.2.3",
-    "url": "^0.11.0"
-  },
-  "devDependencies": {
-    "chai": "^3.5.0",
-    "grunt": "^1.0.1",
-    "grunt-babel": "^6.0.0",
-    "grunt-contrib-clean": "^1.0.0",
-    "grunt-jsdoc": "^2.1.0",
-    "grunt-mocha-test": "^0.13.2",
-    "load-grunt-tasks": "^3.3.0",
-    "mocha": "^3.2.0",
-    "time-grunt": "^1.2.2",
-    "ws": "^1.1.1"
-  }
+	"name": "websocket-rest",
+	"version": "0.0.1",
+	"description": "Opinionated socket lib, helping you to build REST like arhitecture socket API.",
+	"main": "./src/index.js",
+	"license": "MIT",
+	"homepage": "https://urosjarc.github.io/websocketRest.js",
+	"author": {
+		"name": "Uroš Jarc",
+		"email": "jar.fmf@gmail.com",
+		"url": "https://github.com/urosjarc"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/urosjarc/websocketRest.js"
+	},
+	"keywords": [
+		"websocket",
+		"ws",
+		"REST",
+		"arhitecture",
+		"API"
+	],
+	"files": [
+		"src"
+	],
+	"engines": {
+		"node": ">=4.0.0"
+	},
+	"scripts": {
+		"gulp": "gulp",
+		"test": "npm run gulp test:spec && npm run gulp coverage && npm run gulp test:e2e && npm run gulp lint && npm run gulp test:docs && npm run gulp jsdoc && npm run gulp test:dep",
+		"prepublish": "npm run gulp prepublish"
+	},
+	"dependencies": {
+		"http-status-codes": "^1.0.5",
+		"query-string": "^4.2.3",
+		"url": "^0.11.0",
+		"ws": "^1.1.1"
+	},
+	"devDependencies": {
+		"assert": "^1.4.1",
+		"browser-sync": "^2.16.0",
+		"eslint": "^3.1.1",
+		"eslint-config-airbnb-base": "^10.0.1",
+		"eslint-plugin-import": "^2.1.0",
+		"gulp": "^3.9.0",
+		"gulp-check-deps": "^1.4.1",
+		"gulp-codacy": "^1.0.0",
+		"gulp-eslint": "^3.0.1",
+		"gulp-exclude-gitignore": "^1.0.0",
+		"gulp-gh-pages": "^0.5.4",
+		"gulp-help": "^1.6.1",
+		"gulp-istanbul": "^1.0.0",
+		"gulp-jsdoc3": "^1.0.1",
+		"gulp-mocha": "^3.0.1",
+		"gulp-nsp": "^2.1.0",
+		"gulp-plumber": "^1.0.0",
+		"gulp-shell": "^0.5.2",
+		"inchjs": "^0.4.1",
+		"js-yaml": "^3.6.1",
+		"jsdoc": "^3.4.2",
+		"sinon": "^1.17.5"
+	}
 }

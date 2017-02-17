@@ -16,9 +16,11 @@ var url = require('url');
  *
  * @param socket
  */
-module.exports = function(socket){
-
-	socket.pingsSent = 0;
+module.exports = function (socket) {
+	socket.pingStats = {
+		count: 0,
+		pingedAt: new Date()
+	};
 	socket.address = socket.upgradeReq.connection.remoteAddress;
 	socket.query = queryString.parse(queryString.extract(socket.upgradeReq.url));
 	socket.urlPath = url.parse(socket.upgradeReq.url).pathname;

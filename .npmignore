@@ -1,7 +1,5 @@
-src
-test
-.editorconfig
-Gruntfile.js
-.gitignore
-.npmignore
-README.md
+*
+!src
+!LICENSE
+!README.md
+!package.json

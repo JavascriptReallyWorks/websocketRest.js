@@ -34,7 +34,7 @@
  * @param socket
  * @param apiVersion
  */
-module.exports = function(socket,apiVersion,logger) {
+module.exports = function (socket, apiVersion, logger) {
 
 	socket.validationError = function (error) {
 		let json = {
@@ -65,15 +65,15 @@ module.exports = function(socket,apiVersion,logger) {
 			code: code,
 			data: data
 		};
-		logger.debug('websocket-rest (socket.data)',json);
-		try{
+		logger.debug('websocket-rest (socket.data)', json);
+		try {
 			this.send(JSON.stringify(json));
-		} catch (err){
-			logger.debug('websocket-rest (socket.send)',{
-				message : 'Could not send to client',
-				json : json,
-				method : 'data',
-				stack : err
+		} catch (err) {
+			logger.debug('websocket-rest (socket.send)', {
+				message: 'Could not send to client',
+				json: json,
+				method: 'data',
+				stack: err
 			})
 		}
 	};
@@ -87,15 +87,15 @@ module.exports = function(socket,apiVersion,logger) {
 				message: message
 			}
 		};
-		logger.debug('websocket-rest (socket.info)',json);
-		try{
+		logger.debug('websocket-rest (socket.info)', json);
+		try {
 			this.send(JSON.stringify(json));
-		} catch (err){
-			logger.debug('websocket-rest (socket.send)',{
-				message : 'Could not send to client',
-				json : json,
-				method : 'debug',
-				stack : err
+		} catch (err) {
+			logger.debug('websocket-rest (socket.send)', {
+				message: 'Could not send to client',
+				json: json,
+				method: 'debug',
+				stack: err
 			})
 		}
 	};
@@ -110,28 +110,28 @@ module.exports = function(socket,apiVersion,logger) {
 				errors: errors
 			}
 		};
-		logger.warn('websocket-rest (socket.error)',{
-			message : 'Socket server responde with error.',
-			socket : {
-				address : socket.address,
-				query : socket.query,
-				urlPath : socket.urlPath,
-				headers : socket.headers,
-				key : socket.key,
-				connectedAt	: socket.connectedAt
+		logger.warn('websocket-rest (socket.error)', {
+			message: 'Socket server responde with error.',
+			socket: {
+				address: socket.address,
+				query: socket.query,
+				urlPath: socket.urlPath,
+				headers: socket.headers,
+				key: socket.key,
+				connectedAt: socket.connectedAt
 			},
-			response : json
+			response: json
 		});
 
-		try{
+		try {
 			this.send(JSON.stringify(json));
 			this.close();
-		} catch (err){
-			logger.debug('websocket-rest (socket.send)',{
-				message : 'Could not send & close client',
-				method : 'error',
-				json : json,
-				stack : err
+		} catch (err) {
+			logger.debug('websocket-rest (socket.send)', {
+				message: 'Could not send & close client',
+				method: 'error',
+				json: json,
+				stack: err
 			})
 		}
 	};
