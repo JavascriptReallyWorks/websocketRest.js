@@ -1,5 +1,5 @@
 site_name: websocketRest.js
-site_description: Opinionated socket lib, helping you to build REST like arhitecture socket API.
+site_description: 'Opinionated socket lib, helping you to build REST like arhitecture socket API.'
 site_author: Uroš Jarc
 site_url: 'https://urosjarc.github.io/websocketRest.js'
 site_favicon: media/favicon.ico
@@ -18,7 +18,7 @@ pages:
   - Documentation: documentation.md
   - Changelog: changelog.md
 extra:
-  version: 0.1.1
+  version: 0.0.1
   logo: media/logo.png
   github:
     download_release: true

@@ -1,10 +1,10 @@
 "use strict";
 
-var status = require('http-status-codes');
-var addSocketResponse = require('./socket/response');
-var addRequestMethods = require('./socket/request');
-var addSocketKeys = require('./socket/keys');
-var addSocketMethods = require('./socket/methods');
+let status = require('http-status-codes');
+let addSocketResponse = require('./socket/response');
+let addRequestMethods = require('./socket/request');
+let addSocketKeys = require('./socket/keys');
+let addSocketMethods = require('./socket/methods');
 
 class WebsocketRest {
 	constructor() {
