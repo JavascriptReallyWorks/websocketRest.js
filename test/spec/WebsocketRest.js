@@ -115,6 +115,7 @@ describe('WebsocketRest', () => {
 
 			wr._connectionsCheck();
 
+			assert.equal(this.calls, this.maxCalls + 1);
 			assert.equal(wr.socket.clients.length, 2);
 
 			assert.equal(this.client1._ping, this.maxCalls);
@@ -134,6 +135,7 @@ describe('WebsocketRest', () => {
 
 			wr._connectionsCheck();
 
+			assert.equal(this.calls, this.maxCalls + 1);
 			assert.equal(wr.socket.clients.length, 0);
 
             assert.equal(this.client1._ping, this.pinged);
@@ -158,6 +160,8 @@ describe('WebsocketRest', () => {
 			this.calls = 0;
 			this.maxCalls = 3;
 
+			this.clock = sinon.useFakeTimers(0);
+
 			setTimeout = (cb, number) => {
 				assert.equal(number, 1000);
 				self.calls += 1;
@@ -174,16 +178,43 @@ describe('WebsocketRest', () => {
 					this.client2
 				]
 			};
+		});
 
+		afterEach(() => {
+			this.clock.restore();
 		});
 
 		it('not close client if treshold time for connection is not reached', () => {
+			assert.equal(wr.socket.clients.length, 2);
+
 			wr._lastPingCheck();
 
+			assert.equal(wr.socket.clients.length, 2);
+
+			assert.equal(this.calls, this.maxCalls + 1);
 			assert.equal(this.client1._close, 0);
 			assert.equal(this.client2._close, 0);
 
 		});
 
+		it('close client if treshold time for connection is reached', () => {
+			this.client1.pingStats.pingedAt = new Date(-10001);
+			this.client2.pingStats.pingedAt = new Date(-10000);
+
+			assert.equal(wr.socket.clients.length, 2);
+
+			wr._lastPingCheck();
+
+			assert.equal(wr.socket.clients.length, 1);
+
+			assert.equal(this.calls, this.maxCalls + 1);
+			assert.equal(this.client1._close, 1);
+			assert.equal(this.client2._close, 0);
+
+		});
+	});
+
+	describe('#registerOnEvent', () => {
+		it('');
 	});
 });

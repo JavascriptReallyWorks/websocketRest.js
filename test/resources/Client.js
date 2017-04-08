@@ -7,7 +7,8 @@ class Client {
 		this._ping = 0;
 		this._close = 0;
 		this.pingStats = {
-			count: 0
+			count: 0,
+			pingedAt: 0
 		};
 		this.urlPath = (0 | Math.random() * 9e6).toString(36);
 	}
