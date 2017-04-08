@@ -110,24 +110,44 @@ describe('WebsocketRest', () => {
 
 		});
 
-		it('all clients called #ping 3 times', () => {
+		it('all clients called #ping 3 times', (done) => {
 			const self = this;
+
 			wr._connectionsCheck();
+
+			let exec = false;
 			wr.socket.clients.forEach((client) => {
+				exec = true;
 				assert.equal(client._ping, self.maxCalls);
 				assert.equal(client.pingStats.count, self.maxCalls);
 			});
+
+			if(exec) done();
+			else throw Error('No client checked');
+
 		});
 
 		it('all clients called #ping 3 times and then close 1 time', () => {
-			const self = this;
-			this.maxCalls = 6;
+			this.maxCalls = 9;
+			this.pinged = 5;
+
+			assert.equal(wr.socket.clients.length, 2);
+
 			wr._connectionsCheck();
-			wr.socket.clients.forEach((client) => {
-				assert.equal(client._ping, self.maxCalls);
-				assert.equal(client.pingStats.count, self.maxCalls);
-				assert.equal(client._close, self.maxCalls);
-			});
+
+			assert.equal(wr.socket.clients.length, 0);
+
+            assert.equal(this.client1._ping, this.pinged);
+            assert.equal(this.client1.pingStats.count, this.pinged);
+            assert.equal(this.client1._close, 1);
+
+			assert.equal(this.client2._ping, this.pinged);
+			assert.equal(this.client2.pingStats.count, this.pinged);
+			assert.equal(this.client2._close, 1);
+			
+			for(let path in wr.onUrlClose){
+				assert.equal(wr.onUrlClose[path].calledOnce, true);
+			}
 		});
 	});
 });

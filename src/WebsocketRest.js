@@ -66,7 +66,7 @@ class WebsocketRest {
 	_connectionsCheck() {
 		var self = this;
 		setTimeout(function () {
-			for (let i in self.socket.clients) {
+			for (let i = 0; i < self.socket.clients.length; i += 1) {
 				try {
 					self.socket.clients[i].ping();
 				} catch (err) {
@@ -81,6 +81,7 @@ class WebsocketRest {
 					}
 					self.onUrlClose[self.socket.clients[i].urlPath](self.socket.clients[i]);
 					self.socket.clients.splice(i, 1);
+					i -= 1;
 				}
 			}
 			self._connectionsCheck();
