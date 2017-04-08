@@ -20,6 +20,7 @@
 			{
 				"devDependencies": [
 					"**/test/**",
+					"**/docs/**",
 					"**/gulpfile.js"
 				],
 				"optionalDependencies": false
