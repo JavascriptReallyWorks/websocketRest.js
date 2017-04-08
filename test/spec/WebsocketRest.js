@@ -110,24 +110,23 @@ describe('WebsocketRest', () => {
 
 		});
 
-		it('all clients called #ping 3 times', (done) => {
-			const self = this;
+		it('all clients called #ping less than threshold', () => {
+			assert.equal(wr.socket.clients.length, 2);
 
 			wr._connectionsCheck();
 
-			let exec = false;
-			wr.socket.clients.forEach((client) => {
-				exec = true;
-				assert.equal(client._ping, self.maxCalls);
-				assert.equal(client.pingStats.count, self.maxCalls);
-			});
+			assert.equal(wr.socket.clients.length, 2);
 
-			if(exec) done();
-			else throw Error('No client checked');
+			assert.equal(this.client1._ping, this.maxCalls);
+			assert.equal(this.client1.pingStats.count, this.maxCalls);
+			assert.equal(this.client1._close, 0);
 
+			assert.equal(this.client2._ping, this.maxCalls);
+			assert.equal(this.client2.pingStats.count, this.maxCalls);
+			assert.equal(this.client2._close, 0);
 		});
 
-		it('all clients called #ping 3 times and then close 1 time', () => {
+		it('all clients called #ping more than threshold and then run close event', () => {
 			this.maxCalls = 9;
 			this.pinged = 5;
 
@@ -144,10 +143,47 @@ describe('WebsocketRest', () => {
 			assert.equal(this.client2._ping, this.pinged);
 			assert.equal(this.client2.pingStats.count, this.pinged);
 			assert.equal(this.client2._close, 1);
-			
+
 			for(let path in wr.onUrlClose){
 				assert.equal(wr.onUrlClose[path].calledOnce, true);
 			}
 		});
+	});
+
+	describe('#_lastPingCheck', () => {
+
+
+		beforeEach(() => {
+			const self = this;
+			this.calls = 0;
+			this.maxCalls = 3;
+
+			setTimeout = (cb, number) => {
+				assert.equal(number, 1000);
+				self.calls += 1;
+				if (self.calls <= self.maxCalls) cb();
+			};
+
+			this.client1 = new Client();
+			this.client2 = new Client();
+			wr.onUrlClose[this.client1.urlPath] = sinon.stub();
+			wr.onUrlClose[this.client2.urlPath] = sinon.stub();
+			wr.socket = {
+				clients: [
+					this.client1,
+					this.client2
+				]
+			};
+
+		});
+
+		it('not close client if treshold time for connection is not reached', () => {
+			wr._lastPingCheck();
+
+			assert.equal(this.client1._close, 0);
+			assert.equal(this.client2._close, 0);
+
+		});
+
 	});
 });
