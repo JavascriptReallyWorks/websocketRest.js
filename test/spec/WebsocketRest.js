@@ -16,6 +16,17 @@ describe('WebsocketRest', () => {
 
 	beforeEach(() => {
 		wr = require(modulePath);
+
+		this.client1 = new Client();
+		this.client2 = new Client();
+		wr.onUrlClose[this.client1.urlPath] = sinon.stub();
+		wr.onUrlClose[this.client2.urlPath] = sinon.stub();
+		wr.socket = {
+			clients: [
+				this.client1,
+				this.client2
+			]
+		};
 	});
 
 	afterEach(() => {
@@ -23,7 +34,7 @@ describe('WebsocketRest', () => {
 	});
 
 	it('should have right properties', () => {
-		assert.equal(wr.socket, null);
+		assert.deepEqual(wr.socket.clients, [this.client1, this.client2]);
 		assert.equal(wr.apiVersion, null);
 		assert.equal(typeof wr.modules, 'object');
 		assert.equal(typeof wr.onUrlConnect, 'object');
@@ -96,18 +107,6 @@ describe('WebsocketRest', () => {
 				self.calls += 1;
 				if (self.calls <= self.maxCalls) cb();
 			};
-
-			this.client1 = new Client();
-			this.client2 = new Client();
-			wr.onUrlClose[this.client1.urlPath] = sinon.stub();
-			wr.onUrlClose[this.client2.urlPath] = sinon.stub();
-			wr.socket = {
-				clients: [
-					this.client1,
-					this.client2
-				]
-			};
-
 		});
 
 		it('all clients called #ping less than threshold', () => {
@@ -167,17 +166,6 @@ describe('WebsocketRest', () => {
 				self.calls += 1;
 				if (self.calls <= self.maxCalls) cb();
 			};
-
-			this.client1 = new Client();
-			this.client2 = new Client();
-			wr.onUrlClose[this.client1.urlPath] = sinon.stub();
-			wr.onUrlClose[this.client2.urlPath] = sinon.stub();
-			wr.socket = {
-				clients: [
-					this.client1,
-					this.client2
-				]
-			};
 		});
 
 		afterEach(() => {
@@ -215,6 +203,30 @@ describe('WebsocketRest', () => {
 	});
 
 	describe('#registerOnEvent', () => {
-		it('');
+		beforeEach(() => {
+			this.fun = sinon.stub();
+			wr.onEvent = null;
+			wr.registerOnEvent(this.fun);
+		});
+		it('should set right property with event function', () => {
+			assert.deepEqual(wr.onEvent, this.fun);
+		});
+	});
+
+	describe('#logger', () => {
+		beforeEach(() => {
+			this.logger = sinon.stub();
+			wr._log = null;
+			wr.logger(this.logger);
+		});
+		it('should set right property with logger instance', () => {
+			assert.deepEqual(wr._log, this.logger);
+		});
+	});
+
+	describe('#getConnectedClient', () => {
+		it('should return right client', () => {
+
+		});
 	});
 });

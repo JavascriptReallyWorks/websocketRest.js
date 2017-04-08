@@ -91,7 +91,7 @@ class WebsocketRest {
 	_lastPingCheck() {
 		var self = this;
 		setTimeout(function () {
-			for (let i=0;i<self.socket.clients.length; i+=1) {
+			for (let i = 0; i < self.socket.clients.length; i += 1) {
 
 				if ((new Date() - self.socket.clients[i].pingStats.pingedAt) / 1000 > 10) {
 					try {
@@ -101,7 +101,7 @@ class WebsocketRest {
 					}
 					self.onUrlClose[self.socket.clients[i].urlPath](self.socket.clients[i]);
 					self.socket.clients.splice(i, 1);
-					i-=1;
+					i -= 1;
 				}
 			}
 			self._lastPingCheck();
