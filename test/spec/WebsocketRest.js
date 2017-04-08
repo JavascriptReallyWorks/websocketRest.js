@@ -3,6 +3,8 @@
 const assert = require('assert');
 const sinon = require('sinon');
 const index = require('../../src');
+let Client = require('../resources/Client');
+
 
 /**
  * @test module:WebsocketRest
@@ -81,4 +83,51 @@ describe('WebsocketRest', () => {
 		});
 	});
 
+	describe('#_connectionsCheck', () => {
+
+		beforeEach(() => {
+			const self = this;
+
+			this.calls = 0;
+			this.maxCalls = 3;
+
+			setTimeout = (cb, number) => {
+				assert.equal(number, 1000);
+				self.calls += 1;
+				if (self.calls <= self.maxCalls) cb();
+			};
+
+			this.client1 = new Client();
+			this.client2 = new Client();
+			wr.onUrlClose[this.client1.urlPath] = sinon.stub();
+			wr.onUrlClose[this.client2.urlPath] = sinon.stub();
+			wr.socket = {
+				clients: [
+					this.client1,
+					this.client2
+				]
+			};
+
+		});
+
+		it('all clients called #ping 3 times', () => {
+			const self = this;
+			wr._connectionsCheck();
+			wr.socket.clients.forEach((client) => {
+				assert.equal(client._ping, self.maxCalls);
+				assert.equal(client.pingStats.count, self.maxCalls);
+			});
+		});
+
+		it('all clients called #ping 3 times and then close 1 time', () => {
+			const self = this;
+			this.maxCalls = 6;
+			wr._connectionsCheck();
+			wr.socket.clients.forEach((client) => {
+				assert.equal(client._ping, self.maxCalls);
+				assert.equal(client.pingStats.count, self.maxCalls);
+				assert.equal(client._close, self.maxCalls);
+			});
+		});
+	});
 });

@@ -31,24 +31,16 @@ const changelogConfig = './config/changelog.json';
  */
 
 gulp.task('test:spec', 'Run integration/unit tests.', ['test:pre'], (cb) => {
-	let mochaErr;
-
 	gulp.src([
 		'test/spec/**/*.js'
 	]).pipe(plumber())
 		.pipe(mocha({
 			reporter: 'spec'
 		}))
-		.on('error', (err) => {
-			mochaErr = err;
-		})
 		.pipe(istanbul.writeReports({
 			dir: './build/coverage',
 			reportOpts: {dir: './build/coverage'}
-		}))
-		.on('end', () => {
-			cb(mochaErr);
-		});
+		}));
 });
 
 gulp.task('coverage', false, () => {
@@ -62,21 +54,13 @@ gulp.task('coverage', false, () => {
 });
 
 gulp.task('test:e2e', 'Run integration/unit tests.', (cb) => {
-	let mochaErr;
-
 	gulp.src([
 		'test/e2e/**/*.js'
 	]).pipe(plumber())
 		.pipe(mocha({
 			reporter: 'spec',
 			timeout: 100000
-		}))
-		.on('error', (err) => {
-			mochaErr = err;
-		})
-		.on('end', () => {
-			cb(mochaErr);
-		});
+		}));
 });
 
 gulp.task('lint', 'Lint *.js project files.', () => {
