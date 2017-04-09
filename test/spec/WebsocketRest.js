@@ -137,15 +137,15 @@ describe('WebsocketRest', () => {
 			assert.equal(this.calls, this.maxCalls + 1);
 			assert.equal(wr.socket.clients.length, 0);
 
-            assert.equal(this.client1._ping, this.pinged);
-            assert.equal(this.client1.pingStats.count, this.pinged);
-            assert.equal(this.client1._close, 1);
+			assert.equal(this.client1._ping, this.pinged);
+			assert.equal(this.client1.pingStats.count, this.pinged);
+			assert.equal(this.client1._close, 1);
 
 			assert.equal(this.client2._ping, this.pinged);
 			assert.equal(this.client2.pingStats.count, this.pinged);
 			assert.equal(this.client2._close, 1);
 
-			for(let path in wr.onUrlClose){
+			for (let path in wr.onUrlClose) {
 				assert.equal(wr.onUrlClose[path].calledOnce, true);
 			}
 		});
@@ -225,8 +225,174 @@ describe('WebsocketRest', () => {
 	});
 
 	describe('#getConnectedClient', () => {
-		it('should return right client', () => {
+		beforeEach(() => {
+			this.returned = wr.getConnectedClient(this.client1.key);
+		});
 
+		it('should return right client', () => {
+			assert.deepEqual(this.returned, this.client1);
+		});
+
+		it('should return void on wrong key', () => {
+			assert.deepEqual(wr.getConnectedClient(null), undefined);
+		});
+	});
+
+	describe('#getConnectedClients', () => {
+		beforeEach(() => {
+			this.returned = wr.getConnectedClients();
+		});
+		it('should return all clients', () => {
+			assert.deepEqual(this.returned, wr.socket.clients);
+		});
+	});
+
+	describe('#registerModule', () => {
+		it('add unexisting module to the right property', () => {
+			wr.registerModule('module', 'module');
+			assert.deepEqual(wr.modules, {module: 'module'});
+		});
+		it('throw error on adding existing module name', () => {
+			assert.throws(() => {
+				wr.registerModule('module', 'module');
+				wr.registerModule('module', 'module');
+			});
+		});
+	});
+
+	describe('#registerOnConnectUrl', () => {
+		beforeEach(() => {
+			this.cb = sinon.stub().callsArg(1);
+
+			this.socket = {
+				address: 'address',
+				query: 'query',
+				urlPath: 'urlPath',
+				headers: 'headers',
+				key: 'key',
+				connectedAt: 'connectedAt'
+			};
+
+			wr._log = {
+				info: sinon.stub(),
+				err: sinon.stub(),
+				fatal: sinon.stub()
+			};
+		});
+
+		it('add event to the right property', () => {
+			assert.deepEqual(wr.onUrlConnect, {});
+			wr.registerOnConnectUrl('url', this.cb);
+			assert.equal(typeof wr.onUrlConnect.url, 'function');
+		});
+
+		it('registered function is called with right args and logged', (done) => {
+			wr.registerOnConnectUrl('url', (socket, cb) => {
+				try{
+					assert.deepEqual(socket, this.socket);
+
+					cb();
+
+					assert.equal(wr._log.info.calledOnce, true);
+					assert.equal(wr._log.info.calledWithExactly('websocket-rest (socket.connection)', {
+						message: 'Client has connected',
+						socket: this.socket
+					}), true);
+
+					done();
+				} catch (err) {
+					done(err);
+				}
+			});
+			wr.onUrlConnect['url'](this.socket);
+		});
+
+		it('logs error if registered function throw error', () => {
+			wr.registerOnConnectUrl('url', () => {
+				throw Error();
+			});
+			wr.onUrlConnect['url'](this.socket);
+			assert.equal(wr._log.err.calledOnce, true);
+			assert.equal(wr._log.err.calledWith(`websocket-rest (registerOnConnectUrl)`, sinon.match.object), true);
+		});
+
+		it('logs and throw error on already registered url', () => {
+			assert.throws(() => {
+				wr.registerOnConnectUrl('url', this.cb);
+				wr.registerOnConnectUrl('url', this.cb);
+			});
+			assert.equal(wr._log.fatal.calledOnce, true);
+			assert.equal(wr._log.fatal.calledWithExactly('websocket-rest (registerOnConnectUrl)', {
+				message: `url is allready in onUrlConnect!`,
+				url: 'url'
+			}), true);
+		});
+	});
+
+	describe('#registerOnCloseUrl', () => {
+		beforeEach(() => {
+			wr.onUrlClose = {};
+
+			this.cb = sinon.stub().callsArg(1);
+			this.socket = {
+				address: 'address',
+				query: 'query',
+				urlPath: 'urlPath',
+				headers: 'headers',
+				key: 'key',
+				connectedAt: 'connectedAt'
+			};
+
+			wr._log = {
+				info: sinon.stub(),
+				err: sinon.stub(),
+				fatal: sinon.stub()
+			};
+		});
+
+		it('add event to the right property', () => {
+			wr.registerOnCloseUrl('url', this.cb);
+			assert.equal(typeof wr.onUrlClose.url, 'function');
+		});
+
+		it('registered function is called with right args and logged', (done) => {
+			wr.registerOnCloseUrl('url', (socket) => {
+				try {
+					assert.deepEqual(socket, this.socket);
+
+					assert.equal(wr._log.info.calledOnce, true);
+					assert.equal(wr._log.info.calledWithExactly('websocket-rest (socket.close)', {
+						message: 'Client has disconnected',
+						socket: this.socket
+					}), true);
+
+					done();
+				} catch (err) {
+					done(err);
+				}
+			});
+			wr.onUrlClose['url'](this.socket);
+		});
+        //
+		it('logs error if registered function throw error', () => {
+			wr.registerOnCloseUrl('url', () => {
+				throw Error();
+			});
+			wr.onUrlClose['url'](this.socket);
+			assert.equal(wr._log.err.calledOnce, true);
+			assert.equal(wr._log.err.calledWith(`websocket-rest (registerOnCloseUrl)`, sinon.match.object), true);
+		});
+
+		it('logs and throw error on already registered url', () => {
+			assert.throws(() => {
+				wr.registerOnCloseUrl('url', this.cb);
+				wr.registerOnCloseUrl('url', this.cb);
+			});
+			assert.equal(wr._log.fatal.calledOnce, true);
+			assert.equal(wr._log.fatal.calledWithExactly('websocket-rest (registerOnCloseUrl)', {
+				message: `url is allready in onUrlClose!`,
+				url: 'url'
+			}), true);
 		});
 	});
 });

@@ -30,7 +30,7 @@ const changelogConfig = './config/changelog.json';
  * NPM TEST
  */
 
-gulp.task('test:spec', 'Run integration/unit tests.', ['test:pre'], (cb) => {
+gulp.task('test:spec', 'Run integration/unit tests.', ['test:pre'], () =>
 	gulp.src([
 		'test/spec/**/*.js'
 	]).pipe(plumber())
@@ -40,8 +40,8 @@ gulp.task('test:spec', 'Run integration/unit tests.', ['test:pre'], (cb) => {
 		.pipe(istanbul.writeReports({
 			dir: './build/coverage',
 			reportOpts: {dir: './build/coverage'}
-		}));
-});
+		}))
+);
 
 gulp.task('coverage', false, () => {
 	if (process.env.CI) {
@@ -53,15 +53,15 @@ gulp.task('coverage', false, () => {
 	}
 });
 
-gulp.task('test:e2e', 'Run integration/unit tests.', (cb) => {
+gulp.task('test:e2e', 'Run integration/unit tests.', () =>
 	gulp.src([
 		'test/e2e/**/*.js'
 	]).pipe(plumber())
 		.pipe(mocha({
 			reporter: 'spec',
 			timeout: 100000
-		}));
-});
+		}))
+);
 
 gulp.task('lint', 'Lint *.js project files.', () => {
 	const source = [

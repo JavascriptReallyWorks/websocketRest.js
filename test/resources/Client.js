@@ -4,6 +4,7 @@
 
 class Client {
 	constructor() {
+		this.key = (0 | Math.random() * 9e6).toString(36);
 		this._ping = 0;
 		this._close = 0;
 		this.pingStats = {

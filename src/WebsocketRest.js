@@ -229,7 +229,7 @@ class WebsocketRest {
 	registerOnCloseUrl(url, fun) {
 		var self = this;
 		if (url in this.onUrlClose) {
-			let error = `${url} is allready in onUrlClose !`;
+			let error = `${url} is allready in onUrlClose!`;
 			self._log.fatal('websocket-rest (registerOnCloseUrl)', {
 				message: error,
 				url: url
